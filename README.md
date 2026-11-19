@@ -32,6 +32,6 @@ Script de referência em [`supabase/001_canteiro.sql`](supabase/001_canteiro.sql
 - Fotos do RDO ficam no Storage, acessadas por URL assinada.
 
 ## Publicação
-Vercel (projeto `canteiro-obras`), deploy automático a cada push na `main`.
+Vercel (projeto `canteiro-obras`) em https://canteiroobras.vercel.app — deploy automático a cada push na `main`.
 Depois, no Supabase: Authentication → URL Configuration → adicionar a URL do site
 em **Redirect URLs** (para os links de confirmação e de redefinição de senha).
