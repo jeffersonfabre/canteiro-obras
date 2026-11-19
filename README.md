@@ -3,7 +3,7 @@
 Sistema web de gestão de obras inspirado nas funcionalidades do Obra Prima.
 Arquivo único (`index.html`), sem build. Banco no Supabase.
 
-**Versão:** v1.2.0 · Desenvolvido por **DomDevLabs** · domdevlabs@gmail.com
+**Versão:** v1.3.0 · Desenvolvido por **DomDevLabs** · domdevlabs@gmail.com
 
 ## Módulos
 - **Painel / BI**: indicadores, previsto x realizado por obra, fluxo de caixa, pendências
@@ -32,6 +32,6 @@ Script de referência em [`supabase/001_canteiro.sql`](supabase/001_canteiro.sql
 - Fotos do RDO ficam no Storage, acessadas por URL assinada.
 
 ## Publicação
-GitHub Pages: Settings → Pages → Branch `main` / root.
+Vercel (projeto `canteiro-obras`), deploy automático a cada push na `main`.
 Depois, no Supabase: Authentication → URL Configuration → adicionar a URL do site
 em **Redirect URLs** (para os links de confirmação e de redefinição de senha).
