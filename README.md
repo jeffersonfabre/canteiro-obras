@@ -3,7 +3,7 @@
 Sistema web de gestão de obras inspirado nas funcionalidades do Obra Prima.
 Arquivo único (`index.html`), sem build. Banco no Supabase.
 
-**Versão:** v1.5.1 · Desenvolvido por **DomDevLabs** · domdevlabs@gmail.com
+**Versão:** v1.6.0 · Desenvolvido por **DomDevLabs** · domdevlabs@gmail.com
 
 ## Módulos
 - **Painel / BI**: indicadores, previsto x realizado por obra, fluxo de caixa, pendências
