@@ -3,7 +3,7 @@
 Sistema web de gestão de obras inspirado nas funcionalidades do Obra Prima.
 Arquivo único (`index.html`), sem build. Banco no Supabase.
 
-**Versão:** v1.1.0 · Desenvolvido por **DomDevLabs** · domdevlabs@gmail.com
+**Versão:** v1.2.0 · Desenvolvido por **DomDevLabs** · domdevlabs@gmail.com
 
 ## Módulos
 - **Painel / BI**: indicadores, previsto x realizado por obra, fluxo de caixa, pendências
@@ -26,7 +26,7 @@ Projeto **Araleo Fragrances**, mas **independente**: só usa `cant_membros`,
 `cant_registros`, a função `cant_papel()` e o bucket privado `canteiro-fotos`.
 Script de referência em [`supabase/001_canteiro.sql`](supabase/001_canteiro.sql).
 
-- Login por e-mail e senha (Supabase Auth).
+- Login com Google ou por e-mail e senha (Supabase Auth).
 - Só os e-mails cadastrados em `cant_membros` enxergam os dados (RLS).
 - Alterações sincronizam em tempo real entre os usuários.
 - Fotos do RDO ficam no Storage, acessadas por URL assinada.
