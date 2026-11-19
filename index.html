@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Canteiro — Gestão de Obras</title>
+<title>Obra 360 — Gestão de Obras</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -90,7 +90,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}tr.sub td{backgroun
 </head>
 <body>
 <div id="auth" class="auth"><div class="authc">
-  <div class="brand" style="color:var(--ink);padding:0 0 18px"><div class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg></div><div>Canteiro<small style="color:var(--mut)">Gestão de Obras</small></div></div>
+  <div class="brand" style="color:var(--ink);padding:0 0 18px"><div class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg></div><div>Obra 360<small style="color:var(--mut)">Gestão de Obras</small></div></div>
   <div id="authBody"><div class="mut">Carregando…</div></div>
   <div class="mut" style="font-size:11.5px;margin-top:18px;text-align:center"><span style="display:inline-flex;align-items:center;gap:6px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="18" height="18"><defs>
 <linearGradient id="gom2" gradientUnits="userSpaceOnUse" x1="177.8" y1="22.2" x2="22.2" y2="177.8"><stop offset="0" stop-color="#FDB022"/><stop offset="1" stop-color="#F0661C"/></linearGradient>
@@ -106,7 +106,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}tr.sub td{backgroun
 </div></div>
 <div class="app" id="app" style="display:none">
 <aside id="side">
-  <div class="brand"><div class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg></div><div>Canteiro<small>Gestão de Obras</small></div></div>
+  <div class="brand"><div class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg></div><div>Obra 360<small>Gestão de Obras</small></div></div>
   <nav id="nav"></nav>
   <div class="credit">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
@@ -134,9 +134,9 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}tr.sub td{backgroun
 <div class="toast" id="toast"></div>
 
 <script>
-const VERSION='v1.3.1';
-document.getElementById('ver').textContent='Canteiro '+VERSION;
-const KEY='canteiro_db_v1';
+const VERSION='v1.4.0';
+document.getElementById('ver').textContent='Obra 360 '+VERSION;
+const KEY='obra360_v1';
 const $=s=>document.querySelector(s);
 const uid=()=>Math.random().toString(36).slice(2,10);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -155,14 +155,14 @@ function save(){try{localStorage.setItem(KEY+'_cur',CUR||'')}catch(e){}clearTime
 /* ---------- nuvem (Supabase) ---------- */
 const SB_URL='https://hcyvrzjncsfrraadjmvf.supabase.co',SB_KEY='sb_publishable_DAQltYQi-54Pn3WoNm4Myw_IBMJpUcC';
 const sb=supabase.createClient(SB_URL,SB_KEY);
-const BUCKET='canteiro-fotos';
+const BUCKET='obra360-fotos';
 const COLS=['obras','etapas','itens','rdos','medicoes','tarefas','lanc','fornec','solic','mov'];
 let ME=null,PAPEL=null,SNAP={},PEND=false,CHAN=null,BOOTED=false;
 S=EMPTY();try{CUR=localStorage.getItem(KEY+'_cur')}catch(e){}
 const stable=o=>Array.isArray(o)?'['+o.map(stable).join(',')+']':o&&typeof o=='object'?'{'+Object.keys(o).filter(k=>o[k]!==undefined).sort().map(k=>JSON.stringify(k)+':'+stable(o[k])).join(',')+'}':JSON.stringify(o===undefined?null:o);
 function toRecords(){const out={};COLS.forEach(c=>S[c].forEach(o=>out[o.id]={id:o.id,colecao:c,obra_id:c=='obras'?o.id:(o.obraId||null),dados:o}));Object.entries(S.estMin).forEach(([k,v])=>{const id='estmin|'+k;out[id]={id,colecao:'estmin',obra_id:k.split('|')[0],dados:{k,v}}});return out}
 function setSync(s){const el=$('#sync');if(!el)return;el.className='badge '+({ok:'ok',busy:'warn',erro:'bad'}[s]||'');el.textContent={ok:'● salvo',busy:'● salvando…',erro:'● erro ao salvar'}[s]}
-async function pull(){const rows=[];for(let f=0;;f+=1000){const{data,error}=await sb.from('cant_registros').select('id,colecao,dados').order('id').range(f,f+999);if(error)throw error;rows.push(...data);if(data.length<1000)break}
+async function pull(){const rows=[];for(let f=0;;f+=1000){const{data,error}=await sb.from('o360_registros').select('id,colecao,dados').order('id').range(f,f+999);if(error)throw error;rows.push(...data);if(data.length<1000)break}
  S=EMPTY();SNAP={};rows.forEach(r=>{SNAP[r.id]=stable(r.dados);if(r.colecao=='estmin')S.estMin[r.dados.k]=r.dados.v;else if(S[r.colecao])S[r.colecao].push(r.dados)})}
 const fotosDe=j=>{try{return (JSON.parse(j).fotos||[]).filter(f=>f.startsWith('sb:')).map(f=>f.slice(3))}catch(e){return[]}};
 async function uploadFotos(){for(const r of S.rdos){if(!r.fotos)continue;for(let i=0;i<r.fotos.length;i++){const f=r.fotos[i];if(!f.startsWith('data:'))continue;
@@ -174,8 +174,8 @@ async function sync(){if(!ME)return;if(syncing){again=true;return}syncing=true;
  try{await uploadFotos();const cur=toRecords();const ups=[],js=[],dels=[],rm=[];
   for(const id in cur){const j=stable(cur[id].dados);if(SNAP[id]!==j){ups.push(cur[id]);js.push(j);if(cur[id].colecao=='rdos'&&SNAP[id]){const nw=fotosDe(j);rm.push(...fotosDe(SNAP[id]).filter(x=>!nw.includes(x)))}}}
   for(const id in SNAP)if(!cur[id]){dels.push(id);rm.push(...fotosDe(SNAP[id]))}
-  for(let i=0;i<ups.length;i+=300){const{error}=await sb.from('cant_registros').upsert(ups.slice(i,i+300));if(error)throw error}
-  for(let i=0;i<dels.length;i+=300){const{error}=await sb.from('cant_registros').delete().in('id',dels.slice(i,i+300));if(error)throw error}
+  for(let i=0;i<ups.length;i+=300){const{error}=await sb.from('o360_registros').upsert(ups.slice(i,i+300));if(error)throw error}
+  for(let i=0;i<dels.length;i+=300){const{error}=await sb.from('o360_registros').delete().in('id',dels.slice(i,i+300));if(error)throw error}
   ups.forEach((r,i)=>SNAP[r.id]=js[i]);dels.forEach(id=>delete SNAP[id]);
   if(rm.length)sb.storage.from(BUCKET).remove(rm);
   setSync('ok')}catch(e){setSync('erro');toast('Erro ao salvar: '+(e.message||e))}
@@ -184,7 +184,7 @@ function applyRemote(p){const isDel=p.eventType=='DELETE';const row=isDel?p.old:
  if(isDel){if(!(id in SNAP))return;delete SNAP[id];if(id.startsWith('estmin|'))delete S.estMin[id.slice(7)];else COLS.forEach(c=>S[c]=S[c].filter(x=>x.id!=id))}
  else{const j=stable(row.dados);if(SNAP[id]===j)return;SNAP[id]=j;if(row.colecao=='estmin')S.estMin[row.dados.k]=row.dados.v;else{const L=S[row.colecao];const k=L.findIndex(x=>x.id==id);if(k>=0)L[k]=row.dados;else L.push(row.dados)}}
  if($('#ov').classList.contains('on'))PEND=true;else render()}
-function subscribe(){if(CHAN)sb.removeChannel(CHAN);CHAN=sb.channel('canteiro').on('postgres_changes',{event:'*',schema:'public',table:'cant_registros'},applyRemote).subscribe()}
+function subscribe(){if(CHAN)sb.removeChannel(CHAN);CHAN=sb.channel('obra360').on('postgres_changes',{event:'*',schema:'public',table:'o360_registros'},applyRemote).subscribe()}
 /* fotos: URLs assinadas */
 const URLC={};let signQ=new Set(),signT=null;
 const PIX='data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=';
@@ -194,7 +194,7 @@ async function signAll(){const ps=[...signQ];signQ=new Set();if(!ps.length)retur
 async function preSign(){const ps=[...new Set(S.rdos.flatMap(r=>(r.fotos||[]).filter(f=>f.startsWith('sb:')&&!URLC[f.slice(3)]).map(f=>f.slice(3))))];for(let i=0;i<ps.length;i+=100){const{data}=await sb.storage.from(BUCKET).createSignedUrls(ps.slice(i,i+100),6*3600);(data||[]).forEach(d=>{if(d.signedUrl)URLC[d.path]=d.signedUrl})}}
 /* autenticação */
 function authView(mode,msg){const b=$('#authBody');$('#auth').classList.remove('off');$('#app').style.display='none';
- if(mode=='pend'){b.innerHTML=`<h3 style="margin:0 0 8px">Acesso não liberado</h3><p class="mut">A conta <b>${esc(ME.email)}</b> ainda não está na lista de usuários do Canteiro. Peça ao administrador para liberar este e-mail.</p><button class="btn" onclick="boot()">Tentar de novo</button><button class="btn" onclick="sair()">Sair</button>`;return}
+ if(mode=='pend'){b.innerHTML=`<h3 style="margin:0 0 8px">Acesso não liberado</h3><p class="mut">A conta <b>${esc(ME.email)}</b> ainda não está na lista de usuários do Obra 360. Peça ao administrador para liberar este e-mail.</p><button class="btn" onclick="boot()">Tentar de novo</button><button class="btn" onclick="sair()">Sair</button>`;return}
  if(mode=='nova'){b.innerHTML=`<h3 style="margin:0 0 12px">Definir nova senha</h3><div class="f"><label>Nova senha</label><input type="password" id="ap1"></div><button class="btn p" onclick="novaSenha()">Salvar senha</button><div id="amsg" class="mut" style="margin-top:10px"></div>`;return}
  const cad=mode=='cad';
  b.innerHTML=`<h3 style="margin:0 0 12px">${cad?'Criar conta':'Entrar'}</h3><form onsubmit="event.preventDefault();${cad?'cadastrar()':'entrar()'}"><div class="f"><label>E-mail</label><input type="email" id="ae" autocomplete="email" required></div><div class="f"><label>Senha</label><input type="password" id="ap" autocomplete="${cad?'new-password':'current-password'}" required minlength="6"></div><button class="btn p" type="submit">${cad?'Criar conta':'Entrar'}</button></form>
@@ -212,7 +212,7 @@ async function sair(){if(CHAN)sb.removeChannel(CHAN);CHAN=null;await sb.auth.sig
 let booting=false;
 async function boot(){if(booting)return;booting=true;try{
  const{data:{session}}=await sb.auth.getSession();if(!session){authView('login');return}
- ME=session.user;const{data:p,error}=await sb.rpc('cant_papel');if(error){authView('login','<span class="bad">'+esc(error.message)+'</span>');return}
+ ME=session.user;const{data:p,error}=await sb.rpc('o360_papel');if(error){authView('login','<span class="bad">'+esc(error.message)+'</span>');return}
  PAPEL=p;if(!p){authView('pend');return}
  $('#authBody').innerHTML='<div class="mut">Carregando dados da obra…</div>';
  await pull();await preSign().catch(()=>{});subscribe();BOOTED=true;
@@ -493,17 +493,17 @@ function portalTxt(){const o=obra();const rs=S.rdos.filter(r=>r.obraId==o.id).so
 V.dados=()=>{const adm=PAPEL=='admin';
  $('#view').innerHTML=`<div class="card"><h3>Banco de dados</h3><p class="mut" style="margin-top:0">Os dados ficam no Supabase e sincronizam em tempo real entre todos os usuários liberados. Você está conectado como <b>${esc(ME?.email)}</b> (${PAPEL}).</p>
  <div class="row"><button class="btn p" onclick="copyTxt(JSON.stringify(S))">📋 Copiar backup (JSON)</button>${adm?`<label class="btn">📂 Restaurar de arquivo .json<input type="file" accept=".json,application/json" style="display:none" onchange="impFile(this.files[0])"></label><button class="btn" onclick="impCola()">Colar backup</button>`:''}<button class="btn" onclick="recarregar()">⟳ Recarregar do servidor</button></div></div>
- ${adm?`<div class="card"><h3>Usuários com acesso</h3><p class="mut" style="margin-top:0">Só os e-mails desta lista enxergam o Canteiro. A pessoa cria a conta na tela de login com o mesmo e-mail. <b>Editor</b> lança e altera; <b>Leitor</b> só consulta; <b>Admin</b> também gerencia usuários.</p><div id="membros" class="tw"><div class="mut">Carregando…</div></div><button class="btn p" style="margin-top:10px" onclick="membroForm()">+ Liberar e-mail</button></div>
+ ${adm?`<div class="card"><h3>Usuários com acesso</h3><p class="mut" style="margin-top:0">Só os e-mails desta lista enxergam o Obra 360. A pessoa cria a conta na tela de login com o mesmo e-mail. <b>Editor</b> lança e altera; <b>Leitor</b> só consulta; <b>Admin</b> também gerencia usuários.</p><div id="membros" class="tw"><div class="mut">Carregando…</div></div><button class="btn p" style="margin-top:10px" onclick="membroForm()">+ Liberar e-mail</button></div>
  <div class="card"><h3>Dados de exemplo</h3><div class="row"><button class="btn" onclick="ask('Substituir TODOS os dados do banco pelos dados de exemplo?',()=>{S=EMPTY();seed();save();go('painel')})">Carregar exemplo</button><button class="btn d" onclick="ask('Apagar TODOS os dados do banco? Não tem volta.',()=>{S=EMPTY();CUR=null;save();go('obras')})">Começar do zero</button></div></div>`:''}
- <div class="card"><h3>Sobre</h3><p style="margin:0">Canteiro ${VERSION} — sistema de gestão de obras.<br>Desenvolvido por <b>DomDevLabs</b> · domdevlabs@gmail.com</p></div>`;
+ <div class="card"><h3>Sobre</h3><p style="margin:0">Obra 360 ${VERSION} — sistema de gestão de obras.<br>Desenvolvido por <b>DomDevLabs</b> · domdevlabs@gmail.com</p></div>`;
  if(adm)listMembros()};
-async function listMembros(){const{data,error}=await sb.from('cant_membros').select('*').order('criado_em');const el=$('#membros');if(!el)return;if(error){el.innerHTML='<span class="bad">'+esc(error.message)+'</span>';return}
+async function listMembros(){const{data,error}=await sb.from('o360_membros').select('*').order('criado_em');const el=$('#membros');if(!el)return;if(error){el.innerHTML='<span class="bad">'+esc(error.message)+'</span>';return}
  el.innerHTML=`<table><tr><th>E-mail</th><th>Nome</th><th>Papel</th><th>Situação</th><th></th></tr>${data.map(m=>`<tr><td><b>${esc(m.email)}</b></td><td>${esc(m.nome||'')}</td><td><span class="badge ${m.papel=='admin'?'acc':m.papel=='editor'?'blue':''}">${m.papel}</span></td><td>${m.ativo?'<span class="badge ok">Ativo</span>':'<span class="badge">Bloqueado</span>'}</td><td class="n">${m.email==ME.email?'<span class="mut">você</span>':`<button class="btn s" onclick='membroForm(${JSON.stringify(m).replace(/'/g,"&#39;")})'>Editar</button> <button class="btn s d" onclick="delMembro('${esc(m.email)}')">✕</button>`}</td></tr>`).join('')}</table>`}
 function membroForm(m){const F=[{k:'email',l:'E-mail',req:1,full:1},{k:'nome',l:'Nome'},{k:'papel',l:'Papel',t:'sel',opts:[['editor','Editor'],['leitor','Leitor'],['admin','Admin']]},{k:'ativo',l:'Acesso',t:'chk',lab2:'Ativo',def:true}];
  modal(m?'Editar acesso':'Liberar acesso',form(F,m||{}),()=>{const d=readForm(F);if(!d)return false;d.email=d.email.trim().toLowerCase();
-  (m?sb.from('cant_membros').update(d).eq('email',m.email):sb.from('cant_membros').insert(d)).then(({error})=>{if(error)toast('Erro: '+error.message);else{toast('Acesso salvo');listMembros()}});closeM();return false})
+  (m?sb.from('o360_membros').update(d).eq('email',m.email):sb.from('o360_membros').insert(d)).then(({error})=>{if(error)toast('Erro: '+error.message);else{toast('Acesso salvo');listMembros()}});closeM();return false})
  if(m)$('#f_email').disabled=true}
-function delMembro(e){ask('Remover o acesso de '+e+'?',()=>{sb.from('cant_membros').delete().eq('email',e).then(({error})=>{toast(error?'Erro: '+error.message:'Acesso removido');listMembros()})})}
+function delMembro(e){ask('Remover o acesso de '+e+'?',()=>{sb.from('o360_membros').delete().eq('email',e).then(({error})=>{toast(error?'Erro: '+error.message:'Acesso removido');listMembros()})})}
 async function recarregar(){setSync('busy');try{await pull();await preSign();setSync('ok');render();toast('Dados atualizados')}catch(e){setSync('erro');toast('Erro: '+e.message)}}
 function impData(t){try{const d=JSON.parse(t);if(!d.obras)throw 0;S=Object.assign(EMPTY(),d);CUR=null;save();toast('Backup restaurado no banco');go('painel')}catch(e){toast('Arquivo inválido')}}
 function impFile(f){if(!f)return;const r=new FileReader();r.onload=e=>impData(e.target.result);r.readAsText(f)}

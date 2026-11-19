@@ -1,9 +1,9 @@
-# Canteiro — Gestão de Obras
+# Obra 360 — Gestão de Obras
 
 Sistema web de gestão de obras inspirado nas funcionalidades do Obra Prima.
 Arquivo único (`index.html`), sem build. Banco no Supabase.
 
-**Versão:** v1.3.1 · Desenvolvido por **DomDevLabs** · domdevlabs@gmail.com
+**Versão:** v1.4.0 · Desenvolvido por **DomDevLabs** · domdevlabs@gmail.com
 
 ## Módulos
 - **Painel / BI**: indicadores, previsto x realizado por obra, fluxo de caixa, pendências
@@ -22,16 +22,16 @@ Arquivo único (`index.html`), sem build. Banco no Supabase.
 - **Usuários e dados**: lista de acesso (admin / editor / leitor) e backup
 
 ## Banco (Supabase)
-Projeto **Araleo Fragrances**, mas **independente**: só usa `cant_membros`,
-`cant_registros`, a função `cant_papel()` e o bucket privado `canteiro-fotos`.
-Script de referência em [`supabase/001_canteiro.sql`](supabase/001_canteiro.sql).
+Projeto **Araleo Fragrances**, mas **independente**: só usa `o360_membros`,
+`o360_registros`, a função `o360_papel()` e o bucket privado `obra360-fotos`.
+Script de referência em [`supabase/001_obra360.sql`](supabase/001_obra360.sql).
 
 - Login com Google ou por e-mail e senha (Supabase Auth).
-- Só os e-mails cadastrados em `cant_membros` enxergam os dados (RLS).
+- Só os e-mails cadastrados em `o360_membros` enxergam os dados (RLS).
 - Alterações sincronizam em tempo real entre os usuários.
 - Fotos do RDO ficam no Storage, acessadas por URL assinada.
 
 ## Publicação
-Vercel (projeto `canteiro-obras`) em https://canteiroobras.vercel.app — deploy automático a cada push na `main`.
+Vercel (projeto `obra360`) em https://obra360app.vercel.app — deploy automático a cada push na `main`.
 Depois, no Supabase: Authentication → URL Configuration → adicionar a URL do site
 em **Redirect URLs** (para os links de confirmação e de redefinição de senha).
