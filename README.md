@@ -3,7 +3,7 @@
 Sistema web de gestão de obras inspirado nas funcionalidades do Obra Prima.
 Arquivo único (`index.html`), sem build. Banco no Supabase.
 
-**Versão:** v1.4.1 · Desenvolvido por **DomDevLabs** · domdevlabs@gmail.com
+**Versão:** v1.5.0 · Desenvolvido por **DomDevLabs** · domdevlabs@gmail.com
 
 ## Módulos
 - **Painel / BI**: indicadores, previsto x realizado por obra, fluxo de caixa, pendências
@@ -19,7 +19,8 @@ Arquivo único (`index.html`), sem build. Banco no Supabase.
 - **Compras e Cotação**: solicitação → cotação → mapa → pedido → recebimento
 - **Estoque**: saldos, mínimo, transferência entre obras
 - **Fornecedores** e **Portal do Cliente**
-- **Usuários e dados**: lista de acesso (admin / editor / leitor) e backup
+- **Usuários**: liberar e-mails (admin / editor / leitor) e aprovar pedidos de acesso
+- **Backup e dados**: backup, restauração e dados de exemplo
 
 ## Banco (Supabase)
 Projeto **Araleo Fragrances**, mas **independente**: só usa `o360_membros`,

@@ -134,7 +134,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}tr.sub td{backgroun
 <div class="toast" id="toast"></div>
 
 <script>
-const VERSION='v1.4.1';
+const VERSION='v1.5.0';
 document.getElementById('ver').textContent='Obra 360 '+VERSION;
 const KEY='obra360_v1';
 const $=s=>document.querySelector(s);
@@ -194,7 +194,8 @@ async function signAll(){const ps=[...signQ];signQ=new Set();if(!ps.length)retur
 async function preSign(){const ps=[...new Set(S.rdos.flatMap(r=>(r.fotos||[]).filter(f=>f.startsWith('sb:')&&!URLC[f.slice(3)]).map(f=>f.slice(3))))];for(let i=0;i<ps.length;i+=100){const{data}=await sb.storage.from(BUCKET).createSignedUrls(ps.slice(i,i+100),6*3600);(data||[]).forEach(d=>{if(d.signedUrl)URLC[d.path]=d.signedUrl})}}
 /* autenticação */
 function authView(mode,msg){const b=$('#authBody');$('#auth').classList.remove('off');$('#app').style.display='none';
- if(mode=='pend'){b.innerHTML=`<h3 style="margin:0 0 8px">Acesso não liberado</h3><p class="mut">A conta <b>${esc(ME.email)}</b> ainda não está na lista de usuários do Obra 360. Peça ao administrador para liberar este e-mail.</p><button class="btn" onclick="boot()">Tentar de novo</button><button class="btn" onclick="sair()">Sair</button>`;return}
+ if(mode=='pend'){const nm=ME.user_metadata?.full_name||ME.user_metadata?.name||'';b.innerHTML=`<h3 style="margin:0 0 8px">Acesso não liberado</h3><p class="mut">A conta <b>${esc(ME.email)}</b> ainda não tem acesso ao Obra 360.</p><div id="pedBox"><div class="f"><label>Seu nome</label><input id="pnome" value="${esc(nm)}"></div><button class="btn p" onclick="pedirAcesso()">📩 Pedir acesso ao administrador</button></div><button class="btn" onclick="boot()">Já fui liberado — entrar</button><button class="btn" onclick="sair()">Sair</button><div id="amsg" style="margin-top:10px;font-size:13px"></div>`;
+  sb.from('o360_pedidos').select('criado_em').eq('email',ME.email.toLowerCase()).maybeSingle().then(({data})=>{if(data)$('#pedBox').innerHTML='<p class="ok" style="margin:0 0 6px">✓ Pedido enviado em '+new Date(data.criado_em).toLocaleDateString('pt-BR')+'. Aguarde o administrador liberar.</p>'});return}
  if(mode=='nova'){b.innerHTML=`<h3 style="margin:0 0 12px">Definir nova senha</h3><div class="f"><label>Nova senha</label><input type="password" id="ap1"></div><button class="btn p" onclick="novaSenha()">Salvar senha</button><div id="amsg" class="mut" style="margin-top:10px"></div>`;return}
  const cad=mode=='cad';
  b.innerHTML=`<h3 style="margin:0 0 12px">${cad?'Criar conta':'Entrar'}</h3><form onsubmit="event.preventDefault();${cad?'cadastrar()':'entrar()'}"><div class="f"><label>E-mail</label><input type="email" id="ae" autocomplete="email" required></div><div class="f"><label>Senha</label><input type="password" id="ap" autocomplete="${cad?'new-password':'current-password'}" required minlength="6"></div><button class="btn p" type="submit">${cad?'Criar conta':'Entrar'}</button></form>
@@ -210,6 +211,7 @@ async function novaSenha(){const{error}=await sb.auth.updateUser({password:$('#a
 let GOOGLE=null;
 async function checkGoogle(){if(GOOGLE===null){try{const r=await fetch(SB_URL+'/auth/v1/settings',{headers:{apikey:SB_KEY}});const j=await r.json();GOOGLE=!!(j.external&&j.external.google)}catch(e){GOOGLE=false}}['gbtn','gsep'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display=GOOGLE?'':'none'})}
 async function google(){amsg('Abrindo o Google…');const{error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:baseURL(),queryParams:{prompt:'select_account'}}});if(error)amsg(error.message.includes('provider is not enabled')?'Login com Google não está ativado no Supabase.':error.message,1)}
+async function pedirAcesso(){const{error}=await sb.from('o360_pedidos').upsert({email:ME.email.toLowerCase(),nome:$('#pnome').value.trim()||null});if(error)return amsg('Erro: '+error.message,1);$('#pedBox').innerHTML='<p class="ok" style="margin:0 0 6px">✓ Pedido enviado! Assim que o administrador liberar, clique em "Já fui liberado — entrar".</p>'}
 async function sair(){if(CHAN)sb.removeChannel(CHAN);CHAN=null;await sb.auth.signOut();ME=null;PAPEL=null;S=EMPTY();SNAP={};BOOTED=false;authView('login')}
 let booting=false;
 async function boot(){if(booting)return;booting=true;try{
@@ -217,7 +219,7 @@ async function boot(){if(booting)return;booting=true;try{
  ME=session.user;const{data:p,error}=await sb.rpc('o360_papel');if(error){authView('login','<span class="bad">'+esc(error.message)+'</span>');return}
  PAPEL=p;if(!p){authView('pend');return}
  $('#authBody').innerHTML='<div class="mut">Carregando dados da obra…</div>';
- await pull();await preSign().catch(()=>{});subscribe();BOOTED=true;
+ await pull();await preSign().catch(()=>{});subscribe();BOOTED=true;contarPedidos();
  $('#auth').classList.add('off');$('#app').style.display='';$('#usr').textContent=ME.email;setSync('ok');render()}
  catch(e){authView('login','<span class="bad">Erro: '+esc(e.message||e)+'</span>')}finally{booting=false}}
 sb.auth.onAuthStateChange((ev)=>{if(ev=='PASSWORD_RECOVERY'){ME=ME||{};authView('nova');return}if(ev=='SIGNED_IN'&&!BOOTED)setTimeout(boot,0)});
@@ -230,10 +232,10 @@ const NAV=[
  ['Financeiro',[['financeiro','💰','Financeiro'],['pxr','⚖️','Previsto x Realizado']]],
  ['Suprimentos',[['compras','🛒','Compras e Cotação'],['estoque','📦','Estoque'],['fornecedores','🤝','Fornecedores']]],
  ['Cliente',[['portal','👤','Portal do Cliente']]],
- ['Sistema',[['dados','👥','Usuários e dados']]]
+ ['Sistema',[['usuarios','👥','Usuários'],['dados','💾','Backup e dados']]]
 ];
 const TITLES=Object.fromEntries(NAV.flatMap(g=>g[1]).map(x=>[x[0],x[2]]));
-function drawNav(){$('#nav').innerHTML=NAV.map(([g,it])=>`<div class="navg">${g}</div>`+it.map(([k,i,l])=>`<a class="${VIEW==k?'on':''}" onclick="go('${k}')"><span class="i">${i}</span>${l}</a>`).join('')).join('')}
+function drawNav(){$('#nav').innerHTML=NAV.map(([g,it])=>{it=it.filter(x=>x[0]!='usuarios'||PAPEL=='admin');return `<div class="navg">${g}</div>`+it.map(([k,i,l])=>`<a class="${VIEW==k?'on':''}" onclick="go('${k}')"><span class="i">${i}</span>${l}${k=='usuarios'&&NPED?`<span class="badge bad" style="margin-left:auto;padding:1px 7px">${NPED}</span>`:''}</a>`).join('')}).join('')}
 function go(v){VIEW=v;try{history.replaceState(null,'','#'+v)}catch(e){}$('#side').classList.remove('on');render();window.scrollTo(0,0)}
 function setObra(id){CUR=id;save();render()}
 function obra(){return S.obras.find(o=>o.id==CUR)||S.obras[0]}
@@ -241,8 +243,8 @@ function render(){
   if(!S.obras.find(o=>o.id==CUR))CUR=S.obras[0]?.id||null;
   drawNav();$('#ttl').textContent=TITLES[VIEW]||'';
   $('#obraSel').innerHTML=S.obras.length?S.obras.map(o=>`<option value="${o.id}" ${o.id==CUR?'selected':''}>${esc(o.nome)}</option>`).join(''):'<option>Nenhuma obra</option>';
-  $('#obraSel').style.display=['painel','fornecedores','dados','obras'].includes(VIEW)?'none':'';
-  const needObra=!['painel','obras','fornecedores','dados'].includes(VIEW);
+  $('#obraSel').style.display=['painel','fornecedores','dados','obras','usuarios'].includes(VIEW)?'none':'';
+  const needObra=!['painel','obras','fornecedores','dados','usuarios'].includes(VIEW);
   if(needObra&&!obra()){$('#view').innerHTML=`<div class="card empty">Cadastre uma obra primeiro.<br><br><button class="btn p" onclick="go('obras')">Ir para Obras</button></div>`;return}
   (V[VIEW]||V.painel)();
 }
@@ -495,10 +497,24 @@ function portalTxt(){const o=obra();const rs=S.rdos.filter(r=>r.obraId==o.id).so
 V.dados=()=>{const adm=PAPEL=='admin';
  $('#view').innerHTML=`<div class="card"><h3>Banco de dados</h3><p class="mut" style="margin-top:0">Os dados ficam no Supabase e sincronizam em tempo real entre todos os usuários liberados. Você está conectado como <b>${esc(ME?.email)}</b> (${PAPEL}).</p>
  <div class="row"><button class="btn p" onclick="copyTxt(JSON.stringify(S))">📋 Copiar backup (JSON)</button>${adm?`<label class="btn">📂 Restaurar de arquivo .json<input type="file" accept=".json,application/json" style="display:none" onchange="impFile(this.files[0])"></label><button class="btn" onclick="impCola()">Colar backup</button>`:''}<button class="btn" onclick="recarregar()">⟳ Recarregar do servidor</button></div></div>
- ${adm?`<div class="card"><h3>Usuários com acesso</h3><p class="mut" style="margin-top:0">Só os e-mails desta lista enxergam o Obra 360. A pessoa cria a conta na tela de login com o mesmo e-mail. <b>Editor</b> lança e altera; <b>Leitor</b> só consulta; <b>Admin</b> também gerencia usuários.</p><div id="membros" class="tw"><div class="mut">Carregando…</div></div><button class="btn p" style="margin-top:10px" onclick="membroForm()">+ Liberar e-mail</button></div>
- <div class="card"><h3>Dados de exemplo</h3><div class="row"><button class="btn" onclick="ask('Substituir TODOS os dados do banco pelos dados de exemplo?',()=>{S=EMPTY();seed();save();go('painel')})">Carregar exemplo</button><button class="btn d" onclick="ask('Apagar TODOS os dados do banco? Não tem volta.',()=>{S=EMPTY();CUR=null;save();go('obras')})">Começar do zero</button></div></div>`:''}
+ ${adm?`<div class="card"><h3>Dados de exemplo</h3><div class="row"><button class="btn" onclick="ask('Substituir TODOS os dados do banco pelos dados de exemplo?',()=>{S=EMPTY();seed();save();go('painel')})">Carregar exemplo</button><button class="btn d" onclick="ask('Apagar TODOS os dados do banco? Não tem volta.',()=>{S=EMPTY();CUR=null;save();go('obras')})">Começar do zero</button></div></div>`:''}
  <div class="card"><h3>Sobre</h3><p style="margin:0">Obra 360 ${VERSION} — sistema de gestão de obras.<br>Desenvolvido por <b>DomDevLabs</b> · domdevlabs@gmail.com</p></div>`;
- if(adm)listMembros()};
+ };
+V.usuarios=()=>{if(PAPEL!='admin'){$('#view').innerHTML='<div class="card empty">Só administradores gerenciam usuários.</div>';return}
+ $('#view').innerHTML=`<div class="row" style="margin-bottom:14px"><span class="mut">Só os e-mails liberados aqui enxergam o Obra 360. <b>Editor</b> lança e altera · <b>Leitor</b> só consulta · <b>Admin</b> também gerencia usuários.</span><span class="sp"></span><button class="btn p" onclick="membroForm()">+ Liberar e-mail</button></div>
+ <div class="card" id="pedCard" style="display:none;border-color:#f5c48c;background:#fffaf3"><h3>📩 Pedidos de acesso</h3><div id="pedidos" class="tw"></div></div>
+ <div class="card"><h3>Usuários liberados</h3><div id="membros" class="tw"><div class="mut">Carregando…</div></div></div>
+ <div class="card"><h3>Como a pessoa entra</h3><ol style="margin:0;padding-left:18px;line-height:1.8"><li>Você libera o e-mail aqui (ou aprova o pedido dela).</li><li>Ela abre <b>${esc(location.origin)}</b> e entra com o Google ou cria conta com esse mesmo e-mail.</li><li>Se ela entrar antes de ser liberada, aparece o botão <b>Pedir acesso</b> e o pedido cai aqui.</li></ol><p class="mut" style="margin:10px 0 0;font-size:12.5px">Login com Google: enquanto o app do Google estiver em modo "Testando", o Gmail da pessoa também precisa estar em Usuários de teste no Google Cloud.</p></div>`;
+ listMembros();listPedidos()};
+let NPED=0;
+async function contarPedidos(){if(PAPEL!='admin')return;const{count}=await sb.from('o360_pedidos').select('email',{count:'exact',head:true});NPED=count||0;drawNav()}
+async function listPedidos(){const{data,error}=await sb.from('o360_pedidos').select('*').order('criado_em');const el=$('#pedidos'),card=$('#pedCard');if(!el)return;
+ NPED=(data||[]).length;drawNav();if(error||!data.length){card.style.display='none';return}card.style.display='';
+ el.innerHTML=`<table><tr><th>E-mail</th><th>Nome</th><th>Pedido em</th><th></th></tr>${data.map(p=>`<tr><td><b>${esc(p.email)}</b></td><td>${esc(p.nome||'')}</td><td>${new Date(p.criado_em).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})}</td><td class="n" style="white-space:nowrap"><button class="btn s p" onclick="aprovar('${esc(p.email)}','editor')">Aprovar como editor</button> <button class="btn s" onclick="aprovar('${esc(p.email)}','leitor')">Como leitor</button> <button class="btn s d" onclick="recusar('${esc(p.email)}')">Recusar</button></td></tr>`).join('')}</table>`}
+async function aprovar(email,papel){const p=(await sb.from('o360_pedidos').select('nome').eq('email',email).maybeSingle()).data;
+ const{error}=await sb.from('o360_membros').upsert({email,nome:p?.nome||null,papel,ativo:true});if(error)return toast('Erro: '+error.message);
+ await sb.from('o360_pedidos').delete().eq('email',email);toast(email+' liberado como '+papel);listMembros();listPedidos()}
+function recusar(email){ask('Recusar o pedido de '+email+'?',async()=>{await sb.from('o360_pedidos').delete().eq('email',email);toast('Pedido recusado');listPedidos()})}
 async function listMembros(){const{data,error}=await sb.from('o360_membros').select('*').order('criado_em');const el=$('#membros');if(!el)return;if(error){el.innerHTML='<span class="bad">'+esc(error.message)+'</span>';return}
  el.innerHTML=`<table><tr><th>E-mail</th><th>Nome</th><th>Papel</th><th>Situação</th><th></th></tr>${data.map(m=>`<tr><td><b>${esc(m.email)}</b></td><td>${esc(m.nome||'')}</td><td><span class="badge ${m.papel=='admin'?'acc':m.papel=='editor'?'blue':''}">${m.papel}</span></td><td>${m.ativo?'<span class="badge ok">Ativo</span>':'<span class="badge">Bloqueado</span>'}</td><td class="n">${m.email==ME.email?'<span class="mut">você</span>':`<button class="btn s" onclick='membroForm(${JSON.stringify(m).replace(/'/g,"&#39;")})'>Editar</button> <button class="btn s d" onclick="delMembro('${esc(m.email)}')">✕</button>`}</td></tr>`).join('')}</table>`}
 function membroForm(m){const F=[{k:'email',l:'E-mail',req:1,full:1},{k:'nome',l:'Nome'},{k:'papel',l:'Papel',t:'sel',opts:[['editor','Editor'],['leitor','Leitor'],['admin','Admin']]},{k:'ativo',l:'Acesso',t:'chk',lab2:'Ativo',def:true}];

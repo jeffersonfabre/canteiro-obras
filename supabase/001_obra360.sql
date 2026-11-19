@@ -63,3 +63,17 @@ create policy o360_fotos_ins on storage.objects for insert to authenticated with
 create policy o360_fotos_del on storage.objects for delete to authenticated using (bucket_id = 'obra360-fotos' and public.o360_papel() in ('admin','editor'));
 
 insert into public.o360_membros (email, nome, papel) values ('jeffersonfabre@gmail.com','Jefferson Fabre','admin');
+
+-- v1.5.0: pedidos de acesso (quem entra sem liberação pede; admin aprova no app)
+create table public.o360_pedidos (
+  email text primary key check (email = lower(email)),
+  nome text,
+  criado_em timestamptz not null default now()
+);
+alter table public.o360_pedidos enable row level security;
+create policy o360_ped_ins on public.o360_pedidos for insert to authenticated with check (email = lower(coalesce(auth.jwt()->>'email','')));
+create policy o360_ped_upd on public.o360_pedidos for update to authenticated using (email = lower(coalesce(auth.jwt()->>'email',''))) with check (email = lower(coalesce(auth.jwt()->>'email','')));
+create policy o360_ped_sel on public.o360_pedidos for select to authenticated using (email = lower(coalesce(auth.jwt()->>'email','')) or public.o360_papel() = 'admin');
+create policy o360_ped_del on public.o360_pedidos for delete to authenticated using (public.o360_papel() = 'admin');
+revoke all on public.o360_pedidos from anon;
+grant select, insert, update, delete on public.o360_pedidos to authenticated;
